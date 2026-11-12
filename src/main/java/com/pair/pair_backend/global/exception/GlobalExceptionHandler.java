@@ -28,6 +28,7 @@ public class GlobalExceptionHandler {
         if (ex.getRetryAfterSeconds() != null) {
             headers.set("Retry-After", ex.getRetryAfterSeconds().toString());
         }
+
         return new ResponseEntity<>(
                 ApiResponse.error(ex.getErrorCode(), Map.of(), requestId()),
                 headers,

@@ -37,9 +37,7 @@ public class AuthController {
     @Valid
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> login(
-            @RequestBody LoginRequest loginRequest,
-            HttpServletRequest request
-    ) {
+            @RequestBody LoginRequest loginRequest, HttpServletRequest request) {
         LoginResult result = authService.login(loginRequest, request.getRemoteAddr());
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, refreshCookie(result.refreshToken()).toString())
@@ -50,8 +48,7 @@ public class AuthController {
     public ResponseEntity<RefreshResponse> refresh(
             @CookieValue(name = "refresh_token", required = false) String refreshToken,
             @RequestHeader(value = HttpHeaders.ORIGIN, required = false) String origin,
-            HttpServletRequest request
-    ) {
+            HttpServletRequest request) {
         if (origin == null || !allowedOrigins.contains(origin)) {
             throw new BusinessException(ErrorCode.INVALID_ORIGIN);
         }
@@ -69,12 +66,14 @@ public class AuthController {
     @PostMapping("/logout")
     public ResponseEntity<Void> logout(
             @CookieValue(name = "refresh_token", required = false) String refreshToken,
-            @RequestHeader(value = HttpHeaders.ORIGIN, required = false) String origin
-    ) {
+            @RequestHeader(value = HttpHeaders.ORIGIN, required = false) String origin) {
+
         if (origin == null || !allowedOrigins.contains(origin)) {
             throw new BusinessException(ErrorCode.INVALID_ORIGIN);
         }
+
         authService.logout(refreshToken);
+
         ResponseCookie expiredCookie = ResponseCookie.from("refresh_token", "")
                 .httpOnly(true)
                 .secure(true)

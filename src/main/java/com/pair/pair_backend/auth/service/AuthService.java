@@ -51,10 +51,11 @@ public class AuthService {
         }
 
         String loginId = request.getLoginId().trim();
-        if (!LOGIN_ID_PATTERN.matcher(loginId).matches()
-                || !PASSWORD_PATTERN.matcher(request.getPassword()).matches()) {
+
+        if (!LOGIN_ID_PATTERN.matcher(loginId).matches() || !PASSWORD_PATTERN.matcher(request.getPassword()).matches()) {
             throw new BusinessException(ErrorCode.INPUT_INVALID);
         }
+
         authRateLimitService.checkAccountLock(loginId);
 
         User user = userRepository.findByLoginId(loginId).orElse(null);
@@ -66,46 +67,59 @@ public class AuthService {
 
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime expiresAt = now.plus(REFRESH_TOKEN_TTL);
+
         AuthSession session = authSessionRepository.save(AuthSession.create(user, now, expiresAt));
 
         String rawRefreshToken = createRefreshToken();
-        refreshTokenRepository.save(RefreshToken.issue(
-                session, hashRefreshToken(rawRefreshToken), now, expiresAt));
+        refreshTokenRepository.save(RefreshToken.issue(session, hashRefreshToken(rawRefreshToken),
+                now, expiresAt));
 
         String accessToken = jwtTokenProvider.createAccessToken(user.getUserId());
+
         LoginResponse response = LoginResponse.from(accessToken, user, companyId(user));
+
         return new LoginResult(response, rawRefreshToken);
     }
 
     @Transactional
     public RefreshResult refresh(String rawRefreshToken, String ipAddress) {
+
         authRateLimitService.checkRefreshIp(ipAddress);
+
         if (isBlank(rawRefreshToken)) {
             return RefreshResult.failure(ErrorCode.INVALID_REFRESH_TOKEN);
         }
 
         LocalDateTime now = LocalDateTime.now();
+
         RefreshToken storedToken = refreshTokenRepository
                 .findByTokenHashForUpdate(hashRefreshToken(rawRefreshToken))
                 .orElse(null);
+
         if (storedToken == null) {
             return RefreshResult.failure(ErrorCode.INVALID_REFRESH_TOKEN);
         }
 
         AuthSession session = storedToken.getSession();
+
         if (storedToken.getUsedAt() != null) {
             session.revoke(now);
             refreshTokenRepository.revokeUnusedForSession(session.getSessionId(), now);
             return RefreshResult.failure(ErrorCode.REFRESH_TOKEN_REUSED);
         }
+
         if (!storedToken.isUsable(now) || !session.isActive(now)) {
             return RefreshResult.failure(ErrorCode.INVALID_REFRESH_TOKEN);
         }
 
         storedToken.markUsed(now);
+
         LocalDateTime nextExpiresAt = now.plus(REFRESH_TOKEN_TTL);
+
         session.extendUntil(nextExpiresAt);
+
         String nextRawToken = createRefreshToken();
+
         refreshTokenRepository.save(RefreshToken.issue(
                 session, hashRefreshToken(nextRawToken), now, nextExpiresAt));
 
@@ -140,14 +154,16 @@ public class AuthService {
         if (user.getCompanyId() == null) {
             return null;
         }
-        Object id = entityManagerFactory.getPersistenceUnitUtil()
-                .getIdentifier(user.getCompanyId());
+
+        Object id = entityManagerFactory.getPersistenceUnitUtil().getIdentifier(user.getCompanyId());
         return id == null ? null : id.toString();
     }
 
     private String createRefreshToken() {
         byte[] tokenBytes = new byte[32];
+
         secureRandom.nextBytes(tokenBytes);
+
         return Base64.getUrlEncoder().withoutPadding().encodeToString(tokenBytes);
     }
 
@@ -156,7 +172,9 @@ public class AuthService {
             byte[] hash = MessageDigest.getInstance("SHA-256")
                     .digest(rawRefreshToken.getBytes(StandardCharsets.UTF_8));
             return HexFormat.of().formatHex(hash);
+
         } catch (NoSuchAlgorithmException e) {
+
             throw new IllegalStateException("SHA-256 is unavailable", e);
         }
     }

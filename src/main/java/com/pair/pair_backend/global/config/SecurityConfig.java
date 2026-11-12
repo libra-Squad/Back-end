@@ -162,6 +162,6 @@ public class SecurityConfig {
         objectMapper.writeValue(response.getOutputStream(), ApiResponse.error(
                 errorCode, Map.of(), requestId()));
     }
-
+    //what the hell
 
 }

@@ -22,8 +22,7 @@ public class RequestIdFilter extends OncePerRequestFilter {
     protected void doFilterInternal(
             HttpServletRequest request,
             HttpServletResponse response,
-            FilterChain filterChain
-    ) throws ServletException, IOException {
+            FilterChain filterChain) throws ServletException, IOException {
         MDC.put(MDC_KEY, UUID.randomUUID().toString());
         try {
             filterChain.doFilter(request, response);

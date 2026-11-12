@@ -27,9 +27,7 @@ public class CurrentUserJwtAuthenticationConverter implements Converter<Jwt, Abs
         User user = userRepository.findById(jwt.getSubject())
                 .orElseThrow(() -> new InvalidBearerTokenException("Invalid Bearer Token"));
 
-        Object companyIdentifier = user.getCompanyId() == null
-                ? null
-                : entityManagerFactory.getPersistenceUnitUtil().getIdentifier(user.getCompanyId());
+        Object companyIdentifier = user.getCompanyId() == null ? null : entityManagerFactory.getPersistenceUnitUtil().getIdentifier(user.getCompanyId());
         String companyId = companyIdentifier == null ? null : companyIdentifier.toString();
         CurrentUser currentUser = new CurrentUser(user.getUserId(), user.getRole(), companyId);
 

@@ -58,8 +58,8 @@ public class AuthRateLimitService {
                 List.of(accountFailureKey(loginId), accountLockKey(loginId)),
                 String.valueOf(ACCOUNT_FAILURE_WINDOW.toMillis()),
                 String.valueOf(ACCOUNT_FAILURE_LIMIT),
-                String.valueOf(ACCOUNT_LOCK_DURATION.toMillis())
-        );
+                String.valueOf(ACCOUNT_LOCK_DURATION.toMillis()));
+
         if (count != null && count >= ACCOUNT_FAILURE_LIMIT) {
             throw new BusinessException(ErrorCode.LOGIN_LOCKED, ACCOUNT_LOCK_DURATION.toSeconds());
         }
@@ -70,12 +70,15 @@ public class AuthRateLimitService {
     }
 
     private void checkIpLimit(String keyPrefix, String ipAddress, ErrorCode errorCode) {
+
         String key = keyPrefix + normalizeIp(ipAddress);
+
         Long count = redisTemplate.execute(
                 FIXED_WINDOW_INCREMENT,
                 List.of(key),
                 String.valueOf(IP_WINDOW.toMillis())
         );
+
         if (count != null && count > IP_MAX_ATTEMPTS) {
             Long ttl = redisTemplate.getExpire(key);
             long retryAfter = ttl == null || ttl < 1 ? 1 : ttl;

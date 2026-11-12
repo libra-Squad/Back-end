@@ -6,6 +6,7 @@ import lombok.Getter;
 public class BusinessException extends RuntimeException {
     @Getter
     private final ErrorCode errorCode;
+
     @Getter
     private final Long retryAfterSeconds;
 
