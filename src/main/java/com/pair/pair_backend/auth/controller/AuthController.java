@@ -44,6 +44,13 @@ public class AuthController {
                 .body(result.response());
     }
 
+    @Valid
+    @PostMapping("/signup/personal")
+    public ResponseEntity<SignupResponse> signup(
+            @RequestBody SignupRequest signupRequest, HttpServletRequest request) {
+        SignupResponse response = authService
+    }
+
     @PostMapping("/refresh")
     public ResponseEntity<RefreshResponse> refresh(
             @CookieValue(name = "refresh_token", required = false) String refreshToken,

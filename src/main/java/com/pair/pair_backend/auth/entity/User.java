@@ -10,6 +10,8 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 
@@ -29,8 +31,11 @@ public class User {
     }
 
     @Id
-    @Column(nullable = false, length = 64)
+    @Column(name = "user_id", nullable = false, length = 64)
     private String userId;
+
+    @OneToMany(mappedBy = "userId")
+    private List<PhoneVerification> phoneVerifications = new ArrayList<>();
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
